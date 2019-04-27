@@ -4,9 +4,11 @@
 #include <eeprom.h>
 #include <LiquidCrystal_I2C.h>
 #include <SPI.h>
+#include <Servo.h>
 
 LiquidCrystal_I2C lcd(0x27, 16, 2);  // set the LCD address to 0x27 for a 16 chars and 2 line display
 
+Servo servo;
 									 
 /* Typical pin layout used:
  * -----------------------------------------------------------------------------------------
@@ -47,6 +49,9 @@ int balanceLeft;
 void setup() {
 	Serial.begin(9600);
 	EEPROM.begin(); // 1024 bytes of memory
+
+	// Init servo motor
+	servo.attach(4);
 
 	// Init LiquidCrystal_I2C
 	lcd.begin();
@@ -111,6 +116,23 @@ void loop() {
 	// Evaluate the PICC card content
 	CaptureHEX(id);
 
+	// Do not proceed with low balance
+	if (balanceLeft <= 0) {
+		lcd.clear();
+		lcd.setCursor(0, 0);
+		lcd.print("Bal not enough.");
+		lcd.setCursor(0, 1);
+		lcd.print("Process failed.");
+
+		delay(1500);
+
+		lcd.clear();
+
+		onInput = false;
+
+		return;
+	}
+
 	delay(1500);
 
 	lcd.clear();
@@ -173,6 +195,8 @@ void loop() {
 					Serial.println("--------------------------------------------------------");
 					Serial.println(EEPROMGetContents());
 
+					servo.write(90);
+
 					Serial.println("Access granted");
 
 					lcd.clear();
@@ -195,6 +219,8 @@ void loop() {
 					userInput[0] = '\0';
 
 					onInput = false;
+
+					servo.write(0);
 				}
 				else {
 					lcd.clear();
@@ -283,6 +309,7 @@ void CaptureHEX(char *target) {
 
 		// Evaluate how much should be deducted
 		balanceLeft = atoi(balance);
+
 		if (classType == '1') {
 			balanceLeft -= 24;
 		}
