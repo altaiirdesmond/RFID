@@ -69,6 +69,8 @@ void setup() {
 	Serial.println("CURRENT CONTENT");
 	Serial.println(EEPROMGetContents());
 	Serial.println("--------------------------------------------------------");
+
+	servo.write(180);
 }
 
 void loop() {
@@ -220,7 +222,7 @@ void loop() {
 
 					onInput = false;
 
-					servo.write(0);
+					servo.write(180);
 				}
 				else {
 					lcd.clear();
